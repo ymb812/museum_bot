@@ -50,24 +50,16 @@ msgstr "Получить Excel статистику"
 
 
 # buttons
-msgid "GAB_BUTTON"
-msgstr "Готовый арендный бизнес"
+msgid "REPORT_BUTTON"
+msgstr "Осмотр"
 
 
-msgid "ESTATE_BUTTON"
-msgstr "Коммерческая недвижимость"
+msgid "EXHIBIT_BUTTON"
+msgstr "Экспонат"
 
 
 msgid "SUPPORT_BUTTON"
-msgstr "Связаться с администратором"
-
-
-msgid "PRESENTATION_BUTTON"
-msgstr "Получить презентацию"
-
-
-msgid "CONFIRM_BUTTON"
-msgstr "✅ Подтвердить"
+msgstr "Поддержка"
 
 
 msgid "BACK_BUTTON"
@@ -109,8 +101,8 @@ msgstr "Запустить рассылку всем пользователям?
 "<i>/cancel для отмены</i>"
 
 
-msgid "PICK_CATEGORY"
-msgstr "Выберите категорию товара с помощью кнопок 👇"
+msgid "PICK_ACTION"
+msgstr "Выберите действие с помощью кнопок 👇"
 
 
 msgid "PICK_BUDGET"

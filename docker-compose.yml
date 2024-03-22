@@ -58,7 +58,7 @@ services:
     env_file:
       - .env
     environment:
-      POSTGRES_HOST: postgres
+      #POSTGRES_HOST: postgres
       REDIS_HOST: redis
       TZ: Europe/Moscow
     depends_on:
@@ -76,7 +76,7 @@ services:
     env_file:
       - .env
     environment:
-      POSTGRES_HOST: postgres
+      #POSTGRES_HOST: postgres
       TZ: Europe/Moscow
     depends_on:
       postgres:

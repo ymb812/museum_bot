@@ -13,68 +13,82 @@ class User(Model):
         table = 'users'
         ordering = ['created_at']
 
-    user_id = fields.BigIntField(pk=True, index=True)
+    id = fields.IntField(pk=True, index=True)
+    museum = fields.ForeignKeyField(model_name='models.Museum', to_field='id', null=True)
+    fio = fields.CharField(max_length=64, null=True)
+    phone = fields.CharField(max_length=64, null=True)
+    email = fields.CharField(max_length=64, null=True)
+    link = fields.CharField(max_length=64, unique=True)
+
+    user_id = fields.BigIntField(null=True)
     username = fields.CharField(max_length=32, index=True, null=True)
-    status = fields.CharField(max_length=32, null=True)  # admin
-    first_name = fields.CharField(max_length=64)
-    last_name = fields.CharField(max_length=64, null=True)
-    language_code = fields.CharField(max_length=2, null=True)
-    is_premium = fields.BooleanField(null=True)
+    status = fields.CharField(max_length=32, null=True)  # admin/worker
     created_at = fields.DatetimeField(auto_now_add=True)
     updated_at = fields.DatetimeField(auto_now=True)
 
     @classmethod
     async def update_data(cls, user_id: int, first_name: str, last_name: str, username: str, language_code: str,
-                          is_premium: bool):
-        user = await cls.filter(user_id=user_id).first()
+                          is_premium: bool, link: str = None):
+        if link:
+            user = await cls.filter(link=link).first()
+        else:
+            user = await cls.filter(user_id=user_id).first()
         if user is None:
             await cls.create(
                 user_id=user_id,
-                first_name=first_name,
-                last_name=last_name,
                 username=username,
-                language_code=language_code,
                 is_premium=is_premium,
             )
         else:
-            await cls.filter(user_id=user_id).update(
-                first_name=first_name,
-                last_name=last_name,
-                username=username,
-                language_code=language_code,
-                is_premium=is_premium,
-                updated_at=datetime.now()
-            )
+            if link:
+                await cls.filter(link=link).update(
+                    user_id=user_id,
+                    username=username,
+                    updated_at=datetime.now()
+                )
 
     @classmethod
     async def set_status(cls, user_id: int, status: str | None):
         await cls.filter(user_id=user_id).update(status=status)
 
 
-class Category(Model):
+class Museum(Model):
     class Meta:
-        table = 'categories'
-        ordering = ['id']
-
-    class ContentType(Enum):
-        budget = 'budget'
-        commercial = 'commercial'
-
-    id = fields.IntField(pk=True, index=True)
-    name = fields.CharField(max_length=32)
-    content_type = fields.CharEnumField(enum_type=ContentType, default=ContentType.commercial, max_length=32)
-
-
-class Estate(Model):
-    class Meta:
-        table = 'estates'
+        table = 'museums'
         ordering = ['id']
 
     id = fields.IntField(pk=True, index=True)
-    description = fields.CharField(max_length=1024)
+    name = fields.CharField(max_length=64)
+
+
+class Exhibit(Model):
+    class Meta:
+        table = 'exhibits'
+        ordering = ['id']
+
+    id = fields.IntField(pk=True, index=True)
+    name = fields.CharField(max_length=64)
     media_content = fields.CharField(max_length=256, null=True)
-    presentation = fields.CharField(max_length=256)
-    parent_category = fields.ForeignKeyField(model_name='models.Category', to_field='id', null=True)
+    museum = fields.ForeignKeyField(model_name='models.Museum', to_field='id', null=True)
+
+
+class Report(Model):
+    class Meta:
+        table = 'reports'
+        ordering = ['id']
+
+    class StatusType(Enum):
+        work = 'Работает'
+        broken = 'Сломан'
+        admin_request = 'Требует внимания админа'
+        engineer_request = 'Требует внимания техника'
+
+    id = fields.IntField(pk=True, index=True)
+    status = fields.CharEnumField(enum_type=StatusType, default=StatusType.work, max_length=64)
+    description = fields.CharField(max_length=1024)
+    exhibit = fields.ForeignKeyField(model_name='models.Exhibit', to_field='id', null=True)
+    museum = fields.ForeignKeyField(model_name='models.Museum', to_field='id', null=True)
+    created_at = fields.DatetimeField(auto_now_add=True)
 
 
 class Dispatcher(Model):
