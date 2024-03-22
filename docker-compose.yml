@@ -2,66 +2,84 @@ version: '3.3'
 
 services:
   postgres:
-    image: 'postgres:13'
-    container_name: estate_postgres
+    image: postgres:latest
+    environment:
+      TZ: Europe/Moscow
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DATABASE}
+
+    container_name: museum_postgres
     restart: 'always'
-    env_file:
-      - .env
     ports:
-      - '5434:5432'
+      - '5432'
     volumes:
       - ./postgresql/data:/var/lib/postgresql/data
-    networks:
-      - estate_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DATABASE}"]
+      interval: 5s
+      timeout: 30s
+      retries: 5
 
   redis:
     image: redis:latest
     restart: always
     ports:
-      - '63479:6379'
+      - '6379'
     volumes:
       - ./redis:/root/redis
-    networks:
-      - estate_db
+
 
   web:
     build:
       context: .
       dockerfile: DockerfileAdmin
-    container_name: estate_django
+    container_name: museum_django
     restart: always
     env_file:
       - .env
     ports:
       - '8000:8000'
-    networks:
-      - estate_db
+    environment:
+      DB_HOST: postgres
+      TZ: Europe/Moscow
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
 
   bot:
     build:
       context: .
       dockerfile: DockerfileBot
-    container_name: estate_bot
+    container_name: museum_bot
     restart: 'always'
-    networks:
-      - estate_db
-    depends_on:
-      - postgres
     env_file:
       - .env
+    environment:
+      POSTGRES_HOST: postgres
+      REDIS_HOST: redis
+      TZ: Europe/Moscow
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
 
   broadcaster:
     build:
       context: .
       dockerfile: DockerfileBroadcaster
-    container_name: estate_broadcaster
+    container_name: museum_broadcaster
     restart: 'always'
-    networks:
-      - estate_db
-    depends_on:
-      - postgres
     env_file:
       - .env
-
-networks:
-  estate_db:
+    environment:
+      POSTGRES_HOST: postgres
+      TZ: Europe/Moscow
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
