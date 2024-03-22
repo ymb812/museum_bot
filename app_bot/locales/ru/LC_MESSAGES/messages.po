@@ -1,0 +1,151 @@
+# Russian translations for PROJECT.
+# Copyright (C) 2024 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2024.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2024-02-12 18:48+0300\n"
+"PO-Revision-Date: 2024-02-12 18:48+0300\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: ru\n"
+"Language-Team: ru <LL@li.org>\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.14.0\n"
+
+
+# commands
+msgid "START_COMMAND"
+msgstr "Начало работы, главное меню"
+
+
+msgid "CANCEL_COMMAND"
+msgstr "Сбросить текущую цепочку действий"
+
+
+msgid "TASK_CANCEL_COMMAND"
+msgstr "Отменить прохождение задания (необратимо)"
+
+
+msgid "SEND_COMMAND"
+msgstr "Запустить рассылку"
+
+
+msgid "ADD_POINTS_COMMAND"
+msgstr "Увеличить/уменьшить кол-во очков пользователя"
+
+
+msgid "HELP_COMMAND"
+msgstr "Информация о работе бота"
+
+
+msgid "STATS_COMMAND"
+msgstr "Получить Excel статистику"
+
+
+# buttons
+msgid "GAB_BUTTON"
+msgstr "Готовый арендный бизнес"
+
+
+msgid "ESTATE_BUTTON"
+msgstr "Коммерческая недвижимость"
+
+
+msgid "SUPPORT_BUTTON"
+msgstr "Связаться с администратором"
+
+
+msgid "PRESENTATION_BUTTON"
+msgstr "Получить презентацию"
+
+
+msgid "CONFIRM_BUTTON"
+msgstr "✅ Подтвердить"
+
+
+msgid "BACK_BUTTON"
+msgstr "🔙  Назад"
+
+
+msgid "BACK_PAGER"
+msgstr "◀️"
+
+
+msgid "FORWARD_PAGER"
+msgstr "▶️"
+
+
+msgid "MAILING_BUTTON"
+msgstr "Запустить"
+
+
+# texts
+msgid "CANCEL_MSG"
+msgstr "Никакие цепочки процессов не запущены. Отменять нечего."
+
+
+msgid "CANCELED"
+msgstr "Действие отменено"
+
+
+msgid "NEW_ADMIN_TEXT"
+msgstr "Вам выданы права администратора"
+
+
+msgid "INPUT_MAILING_CONTENT"
+msgstr "ℹ️ Укажите текст и/или фото рассылки"
+
+
+msgid "CONFIRM_MAILING"
+msgstr "Запустить рассылку всем пользователям?\n\n"
+
+"<i>/cancel для отмены</i>"
+
+
+msgid "PICK_CATEGORY"
+msgstr "Выберите категорию товара с помощью кнопок 👇"
+
+
+msgid "PICK_BUDGET"
+msgstr "Выберите подходящий бюджет"
+
+
+msgid "PICK_COMMERCIAL"
+msgstr "Выберите категорию коммерческой недвижимости"
+
+
+msgid "INPUT_PHONE"
+msgstr "Введите свой номер для того, чтобы мы связались с вами"
+
+
+msgid "INPUT_PHONE_INFO"
+msgstr "Спасибо, запрос отправлен администрации"
+
+
+# format
+msgid "MAILING_HAS_BEEN_STARTED"
+msgstr "ℹ️ Рассылка запущена администратором @{admin_username}"
+
+
+msgid "MAILING_IS_COMPLETED"
+msgstr "ℹ️ Рассылка завершена\n\n"
+
+"Отправлено: {sent_amount}\n"
+"Всего пользователей: {users_amount}"
+
+
+msgid "PRODUCT_PAGE"
+msgstr "{product_description}"
+
+
+msgid "REQUEST_FROM_USER"
+msgstr "<b>ℹ️ Запрос презентации для объекта {estate_id} от пользователя {username}</b>\n\n"
+
+"<code>{phone}</code>"
