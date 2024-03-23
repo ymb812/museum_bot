@@ -5,7 +5,7 @@ from aiogram_dialog.widgets.media import DynamicMedia
 from aiogram_dialog.widgets.kbd import PrevPage, NextPage, CurrentPage, Start, Column, StubScroll, Button, Row, \
     FirstPage, LastPage, SwitchTo, Select
 from aiogram_dialog.widgets.input import TextInput
-from core.dialogs.getters import get_exhibits_by_museum, get_exhibit_from_inline
+from core.dialogs.getters import get_exhibits_by_museum
 from core.dialogs.callbacks import CallBackHandler
 from core.states.main_menu import MainMenuStateGroup
 from core.states.catalog import CatalogStateGroup
@@ -68,7 +68,7 @@ catalog_dialog = Dialog(
             statuses_select,
             Start(Const(text=_('BACK_BUTTON')), id='go_to_inline', state=MainMenuStateGroup.exhibit)
         ),
-        getter=get_exhibit_from_inline,
+        getter=get_exhibits_by_museum,
         state=CatalogStateGroup.exhibit
     ),
 )
