@@ -43,3 +43,34 @@ async def get_exhibits_by_museum(dialog_manager: DialogManager, **kwargs) -> dic
         'name': current_exhibit.name,
         'statuses': statuses
     }
+
+
+async def get_bot_data(dialog_manager: DialogManager, **kwargs):
+    return {
+        'bot_username': (await dialog_manager.event.bot.get_me()).username
+    }
+
+
+async def get_exhibit_from_inline(dialog_manager: DialogManager, **kwargs):
+    museum_id = (await (await User.get_or_none(user_id=dialog_manager.event.from_user.id))).museum_id
+    exhibit = await Exhibit.get_or_none(id=dialog_manager.start_data['exhibit_id'], museum_id=museum_id)
+    if not exhibit:
+        raise ValueError
+
+    media_content = None
+    if exhibit.media_content:
+        media_content = MediaAttachment(ContentType.PHOTO, url=exhibit.media_content)
+
+    statuses_dict = {status.name: status.value for status in Report.StatusType}
+    statuses = [status for status in Report.StatusType]
+
+    # data for CallbackHandler
+    dialog_manager.dialog_data['museum_id'] = museum_id
+    dialog_manager.dialog_data['current_exhibit_id'] = exhibit.id
+    dialog_manager.dialog_data['statuses_dict'] = statuses_dict
+
+    return {
+        'media_content': media_content,
+        'name': exhibit.name,
+        'statuses': statuses,
+    }

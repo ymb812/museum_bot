@@ -37,7 +37,6 @@ async def start_handler(message: types.Message, bot: Bot, state: FSMContext, dia
             return
 
         # save tg data and delete link
-        user = await User.get(user_id=message.from_user.id)
         user.user_id = message.from_user.id
         user.username = message.from_user.username
         user.link = None
