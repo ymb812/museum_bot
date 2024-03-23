@@ -79,9 +79,9 @@ class Report(Model):
     id = fields.IntField(pk=True, index=True)
     status = fields.CharEnumField(enum_type=StatusType, default=StatusType.work, max_length=64)
     description = fields.CharField(max_length=1024, null=True)
-    exhibit = fields.ForeignKeyField(model_name='models.Exhibit', to_field='id', null=True)
-    museum = fields.ForeignKeyField(model_name='models.Museum', to_field='id', null=True)
-    creator = fields.ForeignKeyField(model_name='models.User', to_field='user_id', null=True)
+    exhibit = fields.ForeignKeyField(model_name='models.Exhibit', to_field='id')
+    museum = fields.ForeignKeyField(model_name='models.Museum', to_field='id')
+    creator = fields.ForeignKeyField(model_name='models.User', to_field='user_id')
     created_at = fields.DatetimeField(auto_now_add=True)
 
 

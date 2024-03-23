@@ -1,59 +1,80 @@
 from django.db import models
-from enum import Enum
 
 
 class User(models.Model):
     class Meta:
         db_table = 'users'
         ordering = ['created_at']
-        verbose_name = 'Пользователи'
+        verbose_name = 'Сотрудники'
         verbose_name_plural = verbose_name
 
-    user_id = models.BigIntegerField(primary_key=True, db_index=True)
+    id = models.AutoField(primary_key=True, db_index=True)
+    museum = models.ForeignKey('Museum', to_field='id', null=True, on_delete=models.SET_NULL)
+    fio = models.CharField(max_length=64, null=True)
+    phone = models.CharField(max_length=64, null=True)
+    email = models.CharField(max_length=64, null=True)
+    link = models.CharField(max_length=64, unique=True, null=True)
+
+    user_id = models.BigIntegerField(unique=True, null=True, blank=True)
     username = models.CharField(max_length=32, db_index=True, blank=True, null=True)
     status = models.CharField(max_length=32, blank=True, null=True)
-    first_name = models.CharField(max_length=64)
-    last_name = models.CharField(max_length=64, blank=True, null=True)
-    language_code = models.CharField(max_length=2, blank=True, null=True)
-    is_premium = models.BooleanField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.first_name
+        return f'{self.fio}'
 
 
-class Category(models.Model):
+class Museum(models.Model):
     class Meta:
-        db_table = 'categories'
+        db_table = 'museums'
         ordering = ['id']
-        verbose_name = 'Категории фильтрации'
+        verbose_name = 'Музеи'
         verbose_name_plural = verbose_name
 
-    class ContentType(models.TextChoices):
-        budget = 'budget', 'budget'
-        commercial = 'commercial', 'commercial'
-
     id = models.AutoField(primary_key=True, db_index=True)
-    name = models.CharField(max_length=32)
-    content_type = models.CharField(max_length=32, choices=ContentType, default=ContentType.commercial)
+    name = models.CharField(max_length=64)
 
     def __str__(self):
         return self.name
 
 
-class Estate(models.Model):
+class Exhibit(models.Model):
     class Meta:
-        db_table = 'estates'
-        ordering = ['id']
-        verbose_name = 'Объекты недвижимости'
+        db_table = 'exhibits'
+        ordering = ['name']
+        verbose_name = 'Экспонаты'
         verbose_name_plural = verbose_name
 
-    id = models.IntegerField(primary_key=True, db_index=True)
-    description = models.CharField(max_length=1024)
+    id = models.AutoField(primary_key=True, db_index=True)
+    name = models.CharField(max_length=64)
     media_content = models.CharField(max_length=256, null=True, blank=True)
-    presentation = models.CharField(max_length=256, null=True, blank=True)
-    parent_category = models.ForeignKey('Category', to_field='id', on_delete=models.SET_NULL, null=True, blank=True)
+    museum = models.ForeignKey('Museum', to_field='id', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
+
+
+class Report(models.Model):
+    class Meta:
+        db_table = 'reports'
+        ordering = ['id']
+        verbose_name = 'Отчеты'
+        verbose_name_plural = verbose_name
+
+    class StatusType(models.TextChoices):
+        work = 'Работает', 'Работает'
+        broken = 'Сломан', 'Сломан'
+        admin_request = 'Требует внимания админа', 'Требует внимания админа'
+        engineer_request = 'Требует внимания техника', 'Требует внимания техника'
+
+    id = models.AutoField(primary_key=True, db_index=True)
+    status = models.CharField(max_length=32, choices=StatusType)
+    description = models.CharField(max_length=1024, null=True)
+    exhibit = models.ForeignKey('Exhibit', to_field='id', on_delete=models.CASCADE)
+    museum = models.ForeignKey('Museum', to_field='id', on_delete=models.CASCADE)
+    creator = models.ForeignKey('User', to_field='user_id', null=True, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f'{self.id}'
