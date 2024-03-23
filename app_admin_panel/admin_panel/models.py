@@ -1,4 +1,14 @@
+import string
+import random
 from django.db import models
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
+from admin_panel_for_bot.settings import settings
+
+
+def generate_random_string(length):
+    characters = string.ascii_letters + string.digits
+    return ''.join(random.choice(characters) for _ in range(length))
 
 
 class User(models.Model):
@@ -11,9 +21,9 @@ class User(models.Model):
     id = models.AutoField(primary_key=True, db_index=True)
     museum = models.ForeignKey('Museum', to_field='id', null=True, on_delete=models.SET_NULL)
     fio = models.CharField(max_length=64, null=True)
-    phone = models.CharField(max_length=64, null=True)
-    email = models.CharField(max_length=64, null=True)
-    link = models.CharField(max_length=64, unique=True, null=True)
+    phone = models.CharField(max_length=64, null=True, blank=True)
+    email = models.CharField(max_length=64, null=True, blank=True)
+    link = models.CharField(max_length=64, unique=True, null=True, blank=True)
 
     user_id = models.BigIntegerField(unique=True, null=True, blank=True)
     username = models.CharField(max_length=32, db_index=True, blank=True, null=True)
@@ -23,6 +33,11 @@ class User(models.Model):
 
     def __str__(self):
         return f'{self.fio}'
+
+    def save(self, *args, **kwargs):
+        self.link = settings.bot_link + generate_random_string(5)
+
+        return super(User, self).save(*args, **kwargs)
 
 
 class Museum(models.Model):
