@@ -19,7 +19,7 @@ class User(Model):
     email = fields.CharField(max_length=64, null=True)
     link = fields.CharField(max_length=64, unique=True, null=True)
 
-    user_id = fields.BigIntField(null=True)
+    user_id = fields.BigIntField(null=True, unique=True)
     username = fields.CharField(max_length=32, index=True, null=True)
     status = fields.CharField(max_length=32, null=True)  # admin
     created_at = fields.DatetimeField(auto_now_add=True)
@@ -57,7 +57,7 @@ class Museum(Model):
 class Exhibit(Model):
     class Meta:
         table = 'exhibits'
-        ordering = ['id']
+        ordering = ['name']
 
     id = fields.IntField(pk=True, index=True)
     name = fields.CharField(max_length=64)
@@ -81,6 +81,7 @@ class Report(Model):
     description = fields.CharField(max_length=1024, null=True)
     exhibit = fields.ForeignKeyField(model_name='models.Exhibit', to_field='id', null=True)
     museum = fields.ForeignKeyField(model_name='models.Museum', to_field='id', null=True)
+    creator = fields.ForeignKeyField(model_name='models.User', to_field='user_id', null=True)
     created_at = fields.DatetimeField(auto_now_add=True)
 
 
