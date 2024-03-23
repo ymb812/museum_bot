@@ -41,7 +41,7 @@ services:
     ports:
       - '8000:8000'
     environment:
-      DB_HOST: postgres
+      #DB_HOST: postgres
       TZ: Europe/Moscow
     depends_on:
       postgres:
