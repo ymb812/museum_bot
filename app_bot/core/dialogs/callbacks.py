@@ -1,60 +1,92 @@
 from aiogram.types import CallbackQuery, Message, LabeledPrice
 from aiogram_dialog import DialogManager
+from aiogram_dialog.widgets.common import ManagedScroll
 from aiogram_dialog.widgets.input import ManagedTextInput
-from aiogram_dialog.widgets.kbd import Button, Select
+from aiogram_dialog.widgets.kbd import Button, Select, SwitchPage
 from core.states.catalog import CatalogStateGroup
-from core.database.models import Estate
+from core.states.main_menu import MainMenuStateGroup
+from core.database.models import Exhibit, Report
 from core.utils.texts import _
 from settings import settings
 
 
-class CallBackHandler:
-    __dialog_data_key = ''
-    __switch_to_state = None
+async def switch_page(dialog_manager: DialogManager, scroll_id: str):
+    # switch page
+    scroll: ManagedScroll = dialog_manager.find(scroll_id)
+    current_page = await scroll.get_page()
+    if current_page == dialog_manager.dialog_data['pages'] - 1:
+        next_page = 0
+    else:
+        next_page = current_page + 1
+    await scroll.set_page(next_page)
 
+
+class CallBackHandler:
     @classmethod
-    async def selected_content(
+    async def selected_status(
             cls,
             callback: CallbackQuery,
             widget: Select,
             dialog_manager: DialogManager,
             item_id: str,
     ):
-        if '_budget_' in callback.data:
-            cls.__dialog_data_key = 'category_id'
-            cls.__switch_to_state = CatalogStateGroup.product_interaction
-            came_from = 'budget'  # for back button in catalog
 
-        if '_commercial_' in callback.data:
-            cls.__dialog_data_key = 'category_id'
-            cls.__switch_to_state = CatalogStateGroup.product_interaction
-            came_from = 'commercial'  # for back button in catalog
+        status = dialog_manager.dialog_data['statuses_dict'][item_id]
+        dialog_manager.dialog_data['status'] = status
 
-        dialog_manager.dialog_data['came_from'] = came_from
-        dialog_manager.dialog_data[cls.__dialog_data_key] = item_id
-        await dialog_manager.start(cls.__switch_to_state, data=dialog_manager.dialog_data)
+        # go to next page if 'work'
+        if item_id == 'work':
+            # create report
+            await Report.create(
+                status=dialog_manager.dialog_data['status'],
+                exhibit_id=dialog_manager.dialog_data['current_exhibit_id'],
+                museum_id=dialog_manager.dialog_data['museum_id'],
+                creator_id=callback.from_user.id
+            )
+
+            if dialog_manager.start_data and dialog_manager.start_data.get('inline_mode'):  # go back to inline
+                await dialog_manager.start(MainMenuStateGroup.exhibit)
+                return
+
+            # switch page
+            await switch_page(dialog_manager=dialog_manager, scroll_id='exhibit_scroll')
+
+        else:
+            await dialog_manager.switch_to(CatalogStateGroup.problem)
 
 
     @staticmethod
-    async def entered_phone(
+    async def entered_problem(
             message: Message,
             widget: ManagedTextInput,
             dialog_manager: DialogManager,
-            value,
+            value: str,
     ):
-        dialog_manager.dialog_data['phone'] = value
-        estate = await Estate.get_or_none(id=dialog_manager.dialog_data['current_estate_id'])
+        dialog_manager.dialog_data['problem'] = value
 
-        # send question to admin
-        if message.from_user.username:
-            username = f'@{message.from_user.username}'
-        else:
-            username = f'<a href="tg://user?id={message.from_user.id}">ссылка</a>'
-        await dialog_manager.middleware_data['bot'].send_message(
-            chat_id=settings.admin_chat_id,
-            text=_('REQUEST_FROM_USER', username=username, phone=value, estate_id=estate.id),
+        # create report
+        await Report.create(
+            status=dialog_manager.dialog_data['status'],
+            description=value.strip(),
+            exhibit_id=dialog_manager.dialog_data['current_exhibit_id'],
+            museum_id=dialog_manager.dialog_data['museum_id'],
+            creator_id=message.from_user.id
         )
 
-        if estate.presentation:
-            await message.answer_document(document=estate.presentation)
-        await dialog_manager.switch_to(state=CatalogStateGroup.product_interaction)  # go back to the catalog
+        if dialog_manager.start_data and dialog_manager.start_data.get('inline_mode'):
+            await dialog_manager.start(MainMenuStateGroup.exhibit)  # go back to inline
+        else:
+            await dialog_manager.switch_to(state=CatalogStateGroup.status)  # go back to the catalog
+
+            # switch page
+            await switch_page(dialog_manager=dialog_manager, scroll_id='exhibit_scroll')
+
+
+    @staticmethod
+    async def entered_exhibit_id(
+            message: Message,
+            widget: ManagedTextInput,
+            dialog_manager: DialogManager,
+            value: str,
+    ):
+        await dialog_manager.start(CatalogStateGroup.exhibit, data={'inline_mode': True, 'exhibit_id': value})
