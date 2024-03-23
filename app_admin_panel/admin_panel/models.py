@@ -104,6 +104,7 @@ class Dispatcher(models.Model):
 
     id = models.BigAutoField(primary_key=True)
     post = models.ForeignKey('Post', to_field='id', on_delete=models.CASCADE)
+    museum = models.ForeignKey('Museum', to_field='id', null=True, on_delete=models.SET_NULL, blank=True)
     send_at = models.DateTimeField()
 
     def __str__(self):

@@ -1,5 +1,7 @@
 import asyncio
 import logging
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
 from datetime import datetime
 from aiogram import Bot, types
 from aiogram.utils.i18n import I18n
@@ -52,11 +54,14 @@ class Broadcaster(object):
 
 
     @classmethod
-    async def send_content_to_users(cls, bot: Bot, message: types.Message | None = None,
-                                    broadcaster_post: Post | None = None):
+    async def send_content_to_users(cls, bot: Bot, message: types.Message = None,
+                                    broadcaster_post: Post = None, museum_id: int = None):
         sent_amount = 0
 
-        users_ids = await User.all()
+        if museum_id:
+            users_ids = await User.filter(museum_id=museum_id).all()
+        else:
+            users_ids = await User.all()
         if not users_ids:
             return sent_amount
 
@@ -78,8 +83,6 @@ class Broadcaster(object):
                     except Exception as e:
                         logger.error(f'Error in mailing via /send, user_id={user.user_id}', exc_info=e)
 
-
-
         return sent_amount
 
 
@@ -93,7 +96,7 @@ class Broadcaster(object):
             return
 
         # sending
-        await cls.send_content_to_users(bot=bot, broadcaster_post=post)
+        await cls.send_content_to_users(bot=bot, broadcaster_post=post, museum_id=order.museum_id)
 
         # delete order
         try:
@@ -103,6 +106,16 @@ class Broadcaster(object):
             return
 
         logger.info(f'order_id={order.id} has been sent to users')
+
+
+    @classmethod
+    async def send_notification(cls):
+        # send daily notification
+        try:
+            post = await Post.get_or_none(id=settings.notification_post_id)
+            await cls.send_content_to_users(bot=bot, broadcaster_post=post)
+        except Exception as e:
+            logger.error(f'Error while sending daily notification', exc_info=e)
 
 
     @classmethod
@@ -154,5 +167,18 @@ async def main():
     await Broadcaster.start_event_loop()
 
 
+async def run_scheduler():
+    scheduler = AsyncIOScheduler()
+    scheduler.add_job(Broadcaster.send_notification,
+                      trigger=CronTrigger(hour=settings.notification_hours, minute=settings.notification_minutes))
+    scheduler.start()
+
+
+async def run_tasks():
+    broadcaster = asyncio.create_task(main())
+    scheduler = asyncio.create_task(run_scheduler())
+    await asyncio.gather(broadcaster, scheduler)
+
+
 if __name__ == '__main__':
-    asyncio.run(main())
+    asyncio.run(run_tasks())

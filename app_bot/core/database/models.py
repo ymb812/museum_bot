@@ -92,6 +92,7 @@ class Dispatcher(Model):
 
     id = fields.BigIntField(pk=True)
     post = fields.ForeignKeyField('models.Post', to_field='id')
+    museum = fields.ForeignKeyField(model_name='models.Museum', to_field='id', null=True)
     send_at = fields.DatetimeField()
 
 
