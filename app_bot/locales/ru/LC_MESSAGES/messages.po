@@ -113,8 +113,8 @@ msgid "PICK_COMMERCIAL"
 msgstr "Выберите категорию коммерческой недвижимости"
 
 
-msgid "INPUT_PHONE"
-msgstr "Введите свой номер для того, чтобы мы связались с вами"
+msgid "INPUT_PROBLEM"
+msgstr "Опишите проблему"
 
 
 msgid "INPUT_PHONE_INFO"

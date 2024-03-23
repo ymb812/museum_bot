@@ -1,5 +1,4 @@
 import logging
-from datetime import datetime
 from tortoise import fields
 from tortoise.models import Model
 from enum import Enum
@@ -18,34 +17,28 @@ class User(Model):
     fio = fields.CharField(max_length=64, null=True)
     phone = fields.CharField(max_length=64, null=True)
     email = fields.CharField(max_length=64, null=True)
-    link = fields.CharField(max_length=64, unique=True)
+    link = fields.CharField(max_length=64, unique=True, null=True)
 
     user_id = fields.BigIntField(null=True)
     username = fields.CharField(max_length=32, index=True, null=True)
-    status = fields.CharField(max_length=32, null=True)  # admin/worker
+    status = fields.CharField(max_length=32, null=True)  # admin
     created_at = fields.DatetimeField(auto_now_add=True)
     updated_at = fields.DatetimeField(auto_now=True)
 
+
     @classmethod
-    async def update_data(cls, user_id: int, first_name: str, last_name: str, username: str, language_code: str,
-                          is_premium: bool, link: str = None):
-        if link:
-            user = await cls.filter(link=link).first()
-        else:
-            user = await cls.filter(user_id=user_id).first()
+    async def update_admin_data(cls, user_id: int, username: str, status: str):
+        user = await cls.get_or_none(user_id=user_id)
         if user is None:
             await cls.create(
                 user_id=user_id,
                 username=username,
-                is_premium=is_premium,
+                status=status
             )
         else:
-            if link:
-                await cls.filter(link=link).update(
-                    user_id=user_id,
-                    username=username,
-                    updated_at=datetime.now()
-                )
+            user.status = status
+            await user.save()
+
 
     @classmethod
     async def set_status(cls, user_id: int, status: str | None):

@@ -1,19 +1,29 @@
 import json
 import logging
 from aiogram import types, Router, F, Bot
-from aiogram.filters import Command
+from aiogram.filters import Command, CommandObject
 from aiogram.fsm.context import FSMContext
 from broadcaster import Broadcaster
 from core.database.models import User
 from core.keyboards.inline import mailing_kb
 from core.states.mailing import MailingStateGroup
-from core.utils.texts import _
+from core.utils.texts import _, set_admin_commands
 from core.excel.excel_generator import create_excel
 from settings import settings
 
 
 logger = logging.getLogger(__name__)
 router = Router(name='Admin commands router')
+
+
+# admin login
+@router.message(Command(commands=['admin']))
+async def admin_login(message: types.Message, state: FSMContext, command: CommandObject, bot: Bot):
+    if command.args == settings.admin_password.get_secret_value():
+        await state.clear()
+        await message.answer(text=_('NEW_ADMIN_TEXT'))
+        await User.update_admin_data(user_id=message.from_user.id, username=message.from_user.username, status='admin')
+        await set_admin_commands(bot=bot, scope=types.BotCommandScopeChat(chat_id=message.from_user.id))
 
 
 @router.message(Command(commands=['send']))

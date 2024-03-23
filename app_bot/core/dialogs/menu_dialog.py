@@ -1,5 +1,3 @@
-from aiogram import Bot
-from aiogram.utils.i18n import I18n
 from aiogram_dialog import Dialog, Window
 from aiogram_dialog.widgets.text import Const, Format
 from aiogram_dialog.widgets.kbd import Column, Url, SwitchTo, Start
@@ -16,7 +14,7 @@ from settings import settings
 main_menu_dialog = Dialog(
     # menu
     Window(
-        Const(text='PICK_ACTION'),
+        Const(text=_('PICK_ACTION')),
         Column(
             Start(Const(text=_('REPORT_BUTTON')), id='go_to_report', state=CatalogStateGroup.status),
             SwitchTo(Const(text=_('EXHIBIT_BUTTON')), id='go_to_exhibit', state=MainMenuStateGroup.exhibit),
