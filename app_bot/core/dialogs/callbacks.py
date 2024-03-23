@@ -25,6 +25,13 @@ class CallBackHandler:
 
         # go to next page if 'work'
         if item_id == 'work':
+            # create report
+            await Report.create(
+                status=dialog_manager.dialog_data['status'],
+                exhibit_id=dialog_manager.dialog_data['current_exhibit_id'],
+                museum_id=dialog_manager.dialog_data['museum_id'],
+            )
+
             scroll: ManagedScroll = dialog_manager.find('exhibit_scroll')
             current_page = await scroll.get_page()
             if current_page == dialog_manager.dialog_data['pages'] - 1:
