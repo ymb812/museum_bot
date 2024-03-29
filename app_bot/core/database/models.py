@@ -57,7 +57,7 @@ class Museum(Model):
 class Exhibit(Model):
     class Meta:
         table = 'exhibits'
-        ordering = ['name']
+        ordering = ['id']
 
     id = fields.IntField(pk=True, index=True)
     name = fields.CharField(max_length=64)

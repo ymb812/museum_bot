@@ -8,11 +8,21 @@ class CustomImportExport(ImportExportModelAdmin, ExportActionModelAdmin):
     pass
 
 
-# setup import
+# setup export
 class UserResource(ModelResource):
     class Meta:
         model = User
+        fields = ['id', 'museum__name', 'fio', 'phone', 'email', 'link', 'user_id', 'username', 'status', 'created_at']
+        export_order = ['id', 'museum__name', 'fio', 'phone', 'email', 'link', 'user_id', 'username', 'status',
+                        'created_at']
         import_id_fields = ('id',)
+
+
+class ReportResource(ModelResource):
+    class Meta:
+        model = Report
+        fields = ['id', 'status', 'description', 'exhibit__name', 'museum__name', 'creator__fio', 'created_at']
+        export_order = ['id', 'status', 'description', 'exhibit__name', 'museum__name', 'creator__fio', 'created_at']
 
 
 @admin.register(User)
@@ -37,6 +47,7 @@ class ExhibitAdmin(CustomImportExport):
 
 @admin.register(Report)
 class ReportAdmin(CustomImportExport):
+    resource_classes = [ReportResource]
     list_display = [field.name for field in Report._meta.fields]
 
 
