@@ -57,7 +57,7 @@ class Museum(models.Model):
 class Exhibit(models.Model):
     class Meta:
         db_table = 'exhibits'
-        ordering = ['name']
+        ordering = ['id']
         verbose_name = 'Экспонаты'
         verbose_name_plural = verbose_name
 
