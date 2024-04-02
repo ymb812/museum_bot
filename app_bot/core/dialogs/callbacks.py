@@ -10,12 +10,16 @@ from core.utils.texts import _
 from settings import settings
 
 
-async def switch_page(dialog_manager: DialogManager, scroll_id: str):
+async def switch_page(dialog_manager: DialogManager, scroll_id: str, message: Message):
     # switch page
     scroll: ManagedScroll = dialog_manager.find(scroll_id)
     current_page = await scroll.get_page()
     if current_page == dialog_manager.dialog_data['pages'] - 1:
-        next_page = 0
+        # next_page = 0
+        # go back to the menu
+        await message.answer(text='Осмотр завершен, спасибо!')
+        await dialog_manager.start(MainMenuStateGroup.menu)
+        return
     else:
         next_page = current_page + 1
     await scroll.set_page(next_page)
@@ -49,7 +53,7 @@ class CallBackHandler:
                 return
 
             # switch page
-            await switch_page(dialog_manager=dialog_manager, scroll_id='exhibit_scroll')
+            await switch_page(dialog_manager=dialog_manager, scroll_id='exhibit_scroll', message=callback.message)
 
         else:
             await dialog_manager.switch_to(CatalogStateGroup.problem)
@@ -79,7 +83,7 @@ class CallBackHandler:
             await dialog_manager.switch_to(state=CatalogStateGroup.status)  # go back to the catalog
 
             # switch page
-            await switch_page(dialog_manager=dialog_manager, scroll_id='exhibit_scroll')
+            await switch_page(dialog_manager=dialog_manager, scroll_id='exhibit_scroll', message=message)
 
 
     @staticmethod
