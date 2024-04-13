@@ -28,9 +28,9 @@ class ReportResource(ModelResource):
 @admin.register(User)
 class UserAdmin(CustomImportExport):
     resource_classes = [UserResource]
-    list_display = ('id', 'museum', 'fio', 'phone', 'email', 'link', 'user_id', 'created_at')
+    list_display = ('id', 'museum', 'fio', 'phone', 'email', 'link', 'user_id', 'is_reports_receiver', 'created_at')
     list_display_links = ('id', 'user_id')
-    list_editable = ('museum', 'fio', 'phone', 'email')
+    list_editable = ('museum', 'fio', 'phone', 'email', 'is_reports_receiver')
     list_filter = ('museum',)
 
 

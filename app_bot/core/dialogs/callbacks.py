@@ -1,31 +1,70 @@
-from aiogram.types import CallbackQuery, Message, LabeledPrice
+import logging
+from aiogram.types import CallbackQuery, Message, BufferedInputFile
 from aiogram_dialog import DialogManager
 from aiogram_dialog.widgets.common import ManagedScroll
 from aiogram_dialog.widgets.input import ManagedTextInput
-from aiogram_dialog.widgets.kbd import Button, Select, SwitchPage
+from aiogram_dialog.widgets.kbd import Select, Button
 from core.states.catalog import CatalogStateGroup
 from core.states.main_menu import MainMenuStateGroup
-from core.database.models import Exhibit, Report
-from core.utils.texts import _
-from settings import settings
+from core.database.models import Report, ReportSession, User
+from core.excel.excel_generator import create_excel_after_checking
+
+
+logger = logging.getLogger(__name__)
 
 
 async def switch_page(dialog_manager: DialogManager, scroll_id: str, message: Message):
     # switch page
     scroll: ManagedScroll = dialog_manager.find(scroll_id)
     current_page = await scroll.get_page()
+    session_id = dialog_manager.start_data.get('session_id')  # to indentify exhibits checks
+
     if current_page == dialog_manager.dialog_data['pages'] - 1:
-        # next_page = 0
         # go back to the menu
         await message.answer(text='Осмотр завершен, спасибо!')
         await dialog_manager.start(MainMenuStateGroup.menu)
+
+        # send reports file to users
+        reports_receivers = await User.filter(is_reports_receiver=True).all()
+        reports_by_session = await Report.filter(session_id=session_id).all()
+
+        try:
+            file_in_memory, is_empty = await create_excel_after_checking(reports=reports_by_session)
+        except Exception as e:
+            logger.info(f'Error in creating file after checking', exc_info=e)
+
+        try:
+            if not is_empty:  # send file if there are any reports
+                file = file_in_memory.read()
+                for user in reports_receivers:
+                    await dialog_manager.event.bot.send_document(
+                        chat_id=user.user_id,
+                        document=BufferedInputFile(file=file, filename='Отчеты.xlsx'),
+                    )
+        except Exception as e:
+            logger.info(f'Error in sending file after checking', exc_info=e)
+
         return
+
     else:
         next_page = current_page + 1
+
     await scroll.set_page(next_page)
 
 
 class CallBackHandler:
+    @classmethod
+    async def start_checking(
+            cls,
+            callback: CallbackQuery,
+            widget: Button,
+            dialog_manager: DialogManager,
+    ):
+        # create new session
+        session = await ReportSession.create(creator_id=callback.from_user.id)
+        await dialog_manager.start(state=CatalogStateGroup.status, data={'session_id': session.id})
+
+
     @classmethod
     async def selected_status(
             cls,
@@ -45,7 +84,8 @@ class CallBackHandler:
                 status=dialog_manager.dialog_data['status'],
                 exhibit_id=dialog_manager.dialog_data['current_exhibit_id'],
                 museum_id=dialog_manager.dialog_data['museum_id'],
-                creator_id=callback.from_user.id
+                creator_id=callback.from_user.id,
+                session_id=dialog_manager.start_data.get('session_id'),
             )
 
             if dialog_manager.start_data and dialog_manager.start_data.get('inline_mode'):  # go back to inline
@@ -74,7 +114,8 @@ class CallBackHandler:
             description=value.strip(),
             exhibit_id=dialog_manager.dialog_data['current_exhibit_id'],
             museum_id=dialog_manager.dialog_data['museum_id'],
-            creator_id=message.from_user.id
+            creator_id=message.from_user.id,
+            session_id=dialog_manager.start_data.get('session_id'),
         )
 
         if dialog_manager.start_data and dialog_manager.start_data.get('inline_mode'):
