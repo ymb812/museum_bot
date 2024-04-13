@@ -32,7 +32,7 @@ main_menu_dialog = Dialog(
         Format(text=_('INPUT_EXHIBIT', bot_username='{bot_username}')),
         TextInput(
             id='input_exhibit',
-            type_factory=str,
+            type_factory=int,
             on_success=CallBackHandler.entered_exhibit_id
         ),
         SwitchTo(Const(text=_('BACK_BUTTON')), id='go_to_menu', state=MainMenuStateGroup.menu),

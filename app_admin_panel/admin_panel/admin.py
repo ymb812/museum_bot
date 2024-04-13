@@ -31,6 +31,7 @@ class UserAdmin(CustomImportExport):
     list_display = ('id', 'museum', 'fio', 'phone', 'email', 'link', 'user_id', 'created_at')
     list_display_links = ('id', 'user_id')
     list_editable = ('museum', 'fio', 'phone', 'email')
+    list_filter = ('museum',)
 
 
 @admin.register(Museum)
@@ -43,12 +44,14 @@ class MuseumAdmin(CustomImportExport):
 class ExhibitAdmin(CustomImportExport):
     list_display = [field.name for field in Exhibit._meta.fields]
     list_editable = [field.name for field in Exhibit._meta.fields if field.name != 'id']
+    list_filter = ('museum',)
 
 
 @admin.register(Report)
 class ReportAdmin(CustomImportExport):
     resource_classes = [ReportResource]
     list_display = [field.name for field in Report._meta.fields]
+    list_filter = ('status', 'museum', 'creator', 'created_at')
 
 
 @admin.register(Dispatcher)

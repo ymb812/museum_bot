@@ -91,6 +91,6 @@ class CallBackHandler:
             message: Message,
             widget: ManagedTextInput,
             dialog_manager: DialogManager,
-            value: str,
+            value: int,
     ):
         await dialog_manager.start(CatalogStateGroup.exhibit, data={'inline_mode': True, 'exhibit_id': value})
