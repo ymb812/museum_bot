@@ -12,7 +12,7 @@ services:
     container_name: museum_postgres
     restart: 'always'
     ports:
-      - '5432'
+      - '5432:5432'
     volumes:
       - ./postgresql/data:/var/lib/postgresql/data
     healthcheck:
