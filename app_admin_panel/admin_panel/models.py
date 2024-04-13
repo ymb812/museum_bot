@@ -19,6 +19,7 @@ class User(models.Model):
         verbose_name_plural = verbose_name
 
     id = models.AutoField(primary_key=True, db_index=True)
+    is_reports_receiver = models.BooleanField(default=False, verbose_name='Получает отчет после осмотра?')
     museum = models.ForeignKey('Museum', to_field='id', null=True, on_delete=models.SET_NULL)
     fio = models.CharField(max_length=64, null=True)
     phone = models.CharField(max_length=64, null=True, blank=True)
