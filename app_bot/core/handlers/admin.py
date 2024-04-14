@@ -4,11 +4,11 @@ from aiogram import types, Router, F, Bot
 from aiogram.filters import Command, CommandObject
 from aiogram.fsm.context import FSMContext
 from broadcaster import Broadcaster
-from core.database.models import User, Report
+from core.database.models import User, Report, Museum
 from core.keyboards.inline import mailing_kb
 from core.states.mailing import MailingStateGroup
 from core.utils.texts import _, set_admin_commands
-from core.excel.excel_generator import create_excel, sort_reports_by_date
+from core.excel.excel_generator import create_main_reports_excel
 from settings import settings
 
 
@@ -59,6 +59,7 @@ async def admin_team_approve_handler(callback: types.CallbackQuery, bot: Bot, st
 
     await callback.message.answer(text=_('MAILING_IS_COMPLETED', users_amount=users_amount, sent_amount=sent_amount))
 
+
 @router.message(Command(commands=['stats']))
 async def excel_stats(message: types.Message):
     # cuz command is only for 'admin'
@@ -66,10 +67,15 @@ async def excel_stats(message: types.Message):
     if user.status != 'admin':
         return
 
-    reports = await Report.all()
-    await sort_reports_by_date()
-    #file_in_memory = await create_excel(model=User)
-    #await message.answer_document(document=types.BufferedInputFile(file_in_memory.read(), filename=settings.excel_file))
+    # get reports for each museum
+    museums = await Museum.all()
+    for museum in museums:
+        reports = await Report.filter(museum_id=museum.id).all()
+        if reports:
+            file_in_memory = await create_main_reports_excel(reports=reports)
+            await message.answer_document(
+                document=types.BufferedInputFile(file_in_memory.read(), filename=f'Отчет по {museum.name}.xlsx'),
+            )
 
 
 # get file_id for broadcaster
