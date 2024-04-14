@@ -4,11 +4,11 @@ from aiogram import types, Router, F, Bot
 from aiogram.filters import Command, CommandObject
 from aiogram.fsm.context import FSMContext
 from broadcaster import Broadcaster
-from core.database.models import User
+from core.database.models import User, Report
 from core.keyboards.inline import mailing_kb
 from core.states.mailing import MailingStateGroup
 from core.utils.texts import _, set_admin_commands
-from core.excel.excel_generator import create_excel
+from core.excel.excel_generator import create_excel, sort_reports_by_date
 from settings import settings
 
 
@@ -66,8 +66,10 @@ async def excel_stats(message: types.Message):
     if user.status != 'admin':
         return
 
-    file_in_memory = await create_excel(model=User)
-    await message.answer_document(document=types.BufferedInputFile(file_in_memory.read(), filename=settings.excel_file))
+    reports = await Report.all()
+    await sort_reports_by_date()
+    #file_in_memory = await create_excel(model=User)
+    #await message.answer_document(document=types.BufferedInputFile(file_in_memory.read(), filename=settings.excel_file))
 
 
 # get file_id for broadcaster
