@@ -14,6 +14,7 @@ class User(Model):
 
     id = fields.IntField(pk=True, index=True)
     museum = fields.ForeignKeyField(model_name='models.Museum', to_field='id', null=True)
+    is_reports_receiver = fields.BooleanField(default=False)
     fio = fields.CharField(max_length=64, null=True)
     phone = fields.CharField(max_length=64, null=True)
     email = fields.CharField(max_length=64, null=True)
@@ -81,6 +82,17 @@ class Report(Model):
     description = fields.CharField(max_length=1024, null=True)
     exhibit = fields.ForeignKeyField(model_name='models.Exhibit', to_field='id')
     museum = fields.ForeignKeyField(model_name='models.Museum', to_field='id')
+    session = fields.ForeignKeyField(model_name='models.ReportSession', to_field='id', null=True)
+    creator = fields.ForeignKeyField(model_name='models.User', to_field='user_id')
+    created_at = fields.DatetimeField(auto_now_add=True)
+
+
+class ReportSession(Model):
+    class Meta:
+        table = 'report_sessions'
+        ordering = ['created_at']
+
+    id = fields.IntField(pk=True, index=True)
     creator = fields.ForeignKeyField(model_name='models.User', to_field='user_id')
     created_at = fields.DatetimeField(auto_now_add=True)
 
