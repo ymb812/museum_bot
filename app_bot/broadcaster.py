@@ -177,7 +177,7 @@ async def run_scheduler():
     # nsk_krsk
     scheduler.add_job(
         func=mail_parser,
-        args=(bot, 'nsk_krsk'),
+        args=(bot, 'nsk_krsk', 17),
         trigger=CronTrigger(hour=17, minute=0),
         misfire_grace_time=10,
     )
@@ -185,7 +185,7 @@ async def run_scheduler():
     # samara
     scheduler.add_job(
         func=mail_parser,
-        args=(bot, 'samara'),
+        args=(bot, 'samara', 20),
         trigger=CronTrigger(hour=20, minute=0),
         misfire_grace_time=10,
     )
@@ -193,7 +193,7 @@ async def run_scheduler():
     # nvg_spb
     scheduler.add_job(
         func=mail_parser,
-        args=(bot, 'nvg_spb'),
+        args=(bot, 'nvg_spb', 21),
         trigger=CronTrigger(hour=21, minute=0),
         misfire_grace_time=10,
     )
