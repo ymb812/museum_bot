@@ -180,7 +180,6 @@ async def run_scheduler():
         args=(bot, 'nsk_krsk'),
         trigger=CronTrigger(hour=17, minute=0),
         misfire_grace_time=10,
-        next_run_time=datetime.now(),
     )
 
     # samara
