@@ -20,12 +20,17 @@ async def switch_page(dialog_manager: DialogManager, scroll_id: str, message: Me
     session_id = dialog_manager.start_data.get('session_id')  # to indentify exhibits checks
 
     if current_page == dialog_manager.dialog_data['pages'] - 1:
+        museum_id = dialog_manager.dialog_data['museum_id']
+
         # go back to the menu
         await message.answer(text='Осмотр завершен, спасибо!')
         await dialog_manager.start(MainMenuStateGroup.menu)
 
         # send reports file to users
-        reports_receivers = await User.filter(is_reports_receiver=True).all()
+        reports_receivers = await User.filter(
+            is_reports_receiver=True,
+            museum_id=museum_id,
+        ).all()
         reports_by_session = await Report.filter(session_id=session_id).all()
 
         try:
