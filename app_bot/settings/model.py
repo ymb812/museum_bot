@@ -6,7 +6,6 @@ class BotSettings(BaseModel):
     bot_token: SecretStr = fields.Field(max_length=100, alias='TELEGRAM_BOT_TOKEN')
     bot_link: str = fields.Field(max_length=100, alias='BOT_BASE_LINK')
     admin_password: SecretStr = fields.Field(max_length=100, alias='ADMIN_PASSWORD')
-    admin_chat_id: str = fields.Field(alias='ADMIN_CHAT_ID')
     admin_chat_link: str = fields.Field(alias='ADMIN_CHAT_LINK')
     required_channel_id: str = fields.Field(alias='REQUIRED_CHANNEL_ID')
     welcome_post_id: int = fields.Field(alias='WELCOME_POST_ID')
@@ -22,6 +21,11 @@ class Broadcaster(BaseModel):
     broadcaster_sleep: int = fields.Field(alias='BROADCASTER_SLEEP', default=1)
     notification_hours: int = fields.Field(alias='NOTIFICATION_HOURS', default=10)
     notification_minutes: int = fields.Field(alias='NOTIFICATION_MINUTES', default=0)
+    nvg_chat_id: str = fields.Field(alias='NVG_CHAT_ID')
+    spb_chat_id: str = fields.Field(alias='SPB_CHAT_ID')
+    samara_chat_id: str = fields.Field(alias='SAMARA_CHAT_ID')
+    nsk_chat_id: str = fields.Field(alias='NSK_CHAT_ID')
+    krsk_chat_id: str = fields.Field(alias='KRSK_CHAT_ID')
 
 class AppSettings(BaseModel):
     prod_mode: bool = fields.Field(alias='PROD_MODE', default=False)
