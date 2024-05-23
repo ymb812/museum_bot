@@ -44,26 +44,26 @@ async def mail_parser(bot: Bot, cities: str, hour: int):
 
             result = f'{round(float(paid) / 1000, 1)};{quantity};{round(float(souvenirs))};{round(float(lab_total))}'
 
-            # # send by cities
-            # if 'Нижний Новгород' in message.subject and 'nvg_spb' in cities:
-            #     await bot.send_message(chat_id=settings.nvg_chat_id, text=result)
-            #     logger.info(f'msg was sent to the {cities}')
-            #
-            # if 'Санкт-Петербург' in message.subject and 'nvg_spb' in cities:
-            #     await bot.send_message(chat_id=settings.spb_chat_id, text=result)
-            #     logger.info(f'msg was sent to the {cities}')
-            #
-            # if 'Самара' in message.subject and 'samara' in cities:
-            #     await bot.send_message(chat_id=settings.samara_chat_id, text=result)
-            #     logger.info(f'msg was sent to the {cities}')
-            #
-            # if 'Новосибирск' in message.subject and 'nsk_krsk' in cities:
-            #     await bot.send_message(chat_id=settings.nsk_chat_id, text=result)
-            #     logger.info(f'msg was sent to the {cities}')
-            #
-            # if 'Красноярск' in message.subject and 'nsk_krsk' in cities:
-            #     await bot.send_message(chat_id=settings.krsk_chat_id, text=result)
-            #     logger.info(f'msg was sent to the {cities}')
+            # send by cities
+            if 'Нижний Новгород' in message.subject and 'nvg_spb' in cities:
+                await bot.send_message(chat_id=settings.nvg_chat_id, text=result)
+                logger.info(f'msg was sent to the {cities}')
+
+            if 'Санкт-Петербург' in message.subject and 'nvg_spb' in cities:
+                await bot.send_message(chat_id=settings.spb_chat_id, text=result)
+                logger.info(f'msg was sent to the {cities}')
+
+            if 'Самара' in message.subject and 'samara' in cities:
+                await bot.send_message(chat_id=settings.samara_chat_id, text=result)
+                logger.info(f'msg was sent to the {cities}')
+
+            if 'Новосибирск' in message.subject and 'nsk_krsk' in cities:
+                await bot.send_message(chat_id=settings.nsk_chat_id, text=result)
+                logger.info(f'msg was sent to the {cities}')
+
+            if 'Красноярск' in message.subject and 'nsk_krsk' in cities:
+                await bot.send_message(chat_id=settings.krsk_chat_id, text=result)
+                logger.info(f'msg was sent to the {cities}')
 
             logger.info(f'{message.date} {message.subject} {result}')
 
