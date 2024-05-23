@@ -1,66 +1,48 @@
-import imaplib
-import email
-from email.header import decode_header
 import re
+import logging
+import asyncio
+from datetime import datetime, timedelta
+from simplegmail import Gmail
+from aiogram import Bot
+from aiogram.utils.i18n import I18n
 
 
-# Логин и пароль от почтового ящика
-username = ''  # TODO: TO .ENV
-password = ''
+logger = logging.getLogger(__name__)
 
-# Подключение к серверу
-mail = imaplib.IMAP4_SSL('imap.mail.ru', 993)
-mail.login(username, password)
 
-# Выбор почтового ящика
-mail.select('inbox')
+async def mail_parser(bot: Bot):
+    gmail = Gmail(noauth_local_webserver=True)
 
-# Поиск писем от определенного отправителя
-status, messages = mail.search(None, 'FROM', '"nsk@galileopark.ru"')
+    current_date = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
+    query = f'from:nsk@galileopark.ru after:{current_date}'
 
-# Разбиваем результат на список почтовых идентификаторов
-mail_ids = messages[0].split()
+    messages = gmail.get_messages(query=query)
 
-# Объявление шаблонов для извлечения данных из письма
-quantity_pattern = re.compile(r'Количество\s+(\d+)')
-paid_pattern = re.compile(r'Оплачено\s+([\d\s]+)')
-lab_total_pattern = re.compile(r'Лаборатория всего \(%\)\s+([\d,]+)')
-souvenirs_pattern = re.compile(r'Сувениры\s+([\d,]+)')
+    quantity_pattern = re.compile(r'Количество\s+(\d+)')
+    paid_pattern = re.compile(r'Оплачено\s+([\d\s]+)')
+    lab_total_pattern = re.compile(r'Лаборатория всего \(%\)\s+([\d,]+)')
+    souvenirs_pattern = re.compile(r'Сувениры\s+([\d,]+)')
 
-for mail_id in mail_ids:
-    status, msg_data = mail.fetch(mail_id, '(RFC822)')
-    for response_part in msg_data:
-        if isinstance(response_part, tuple):
-            # Парсим содержимое письма с помощью email-пакета
-            msg = email.message_from_bytes(response_part[1])
-            subject, encoding = decode_header(msg['Subject'])[0]
-            if isinstance(subject, bytes):
-                subject = subject.decode(encoding)
+    for message in messages:
+        print(f'Subject: {message.subject}')
 
-            from_ = msg.get('From')
-            print('Subject:', subject)
-            print('From:', from_)
+        body = message.plain
+        quantity_match = quantity_pattern.search(body)
+        paid_match = paid_pattern.search(body)
+        lab_total_match = lab_total_pattern.search(body)
+        souvenirs_match = souvenirs_pattern.search(body)
 
-            # Считываем всё тело письма
-            if msg.is_multipart():
-                for part in msg.walk():
-                    content_type = part.get_content_type()
-                    if content_type == 'text/plain':
-                        body = part.get_payload(decode=True).decode()
-                        break
-            else:
-                content_type = msg.get_content_type()
-                if content_type == 'text/plain':
-                    body = msg.get_payload(decode=True).decode()
+        quantity = quantity_match.group(1) if quantity_match else 'N/A'
+        paid = re.sub(r'\s', '', paid_match.group(1)) if paid_match else 'N/A'
+        lab_total = lab_total_match.group(1).replace(',', '.') if lab_total_match else 'N/A'
+        souvenirs = souvenirs_match.group(1).replace(',', '.') if souvenirs_match else 'N/A'
 
-            # Парсим текст письма с помощью регулярных выражений
-            quantity = quantity_pattern.search(body).group(1)
-            paid = paid_pattern.search(body).group(1).replace(' ', '')
-            lab_total = lab_total_pattern.search(body).group(1).replace(',', '.')
-            souvenirs = souvenirs_pattern.search(body).group(1).replace(',', '.')
 
-            result = f'{quantity} {paid} {lab_total} {souvenirs}'
-            print('Parsed data:', result)
+        result = f'{round(float(paid) / 1000, 1)};{quantity};{round(float(souvenirs))};{round(float(lab_total))}'
 
-# Разлогиниваемся и закрываем соединение
-mail.logout()
+        await bot.send_message(chat_id=-1002235736510, text=result)
+        print(f'Parsed data: {result}\n')
+
+
+bot = Bot('', parse_mode='HTML')
+asyncio.run(mail_parser(bot=bot))
