@@ -7,6 +7,7 @@ from aiogram import Bot, types
 from aiogram.utils.i18n import I18n
 from core.database import init
 from core.database.models import User, Dispatcher, Post
+from mail_parser.mail_parser import mail_parser
 from settings import settings
 
 
@@ -171,6 +172,32 @@ async def run_scheduler():
     scheduler = AsyncIOScheduler()
     scheduler.add_job(Broadcaster.send_notification,
                       trigger=CronTrigger(hour=settings.notification_hours, minute=settings.notification_minutes))
+
+    # add mail jobs
+    # nsk_krsk
+    scheduler.add_job(
+        func=mail_parser,
+        args=(bot, 'nsk_krsk', 17),
+        trigger=CronTrigger(hour=17, minute=0),
+        misfire_grace_time=10,
+    )
+
+    # samara
+    scheduler.add_job(
+        func=mail_parser,
+        args=(bot, 'samara', 20),
+        trigger=CronTrigger(hour=20, minute=0),
+        misfire_grace_time=10,
+    )
+
+    # nvg_spb
+    scheduler.add_job(
+        func=mail_parser,
+        args=(bot, 'nvg_spb', 21),
+        trigger=CronTrigger(hour=21, minute=0),
+        misfire_grace_time=10,
+    )
+
     scheduler.start()
 
 

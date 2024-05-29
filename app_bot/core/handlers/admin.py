@@ -1,5 +1,6 @@
 import json
 import logging
+import asyncio
 from aiogram import types, Router, F, Bot
 from aiogram.filters import Command, CommandObject
 from aiogram.fsm.context import FSMContext
@@ -14,6 +15,16 @@ from settings import settings
 
 logger = logging.getLogger(__name__)
 router = Router(name='Admin commands router')
+
+
+# ez to get id while developing
+@router.channel_post(Command(commands=['init']))
+@router.message(Command(commands=['init']))
+async def init_for_id(message: types.Message):
+    await message.delete()
+    msg = await message.answer(text=f'<code>{message.chat.id}</code>')
+    await asyncio.sleep(2)
+    await msg.delete()
 
 
 # admin login
