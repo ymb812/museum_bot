@@ -180,7 +180,6 @@ async def run_scheduler():
         args=(bot, 'nsk_krsk', 17),
         trigger=CronTrigger(hour=17, minute=0),
         misfire_grace_time=10,
-        next_run_time=datetime.now()
     )
 
     # samara
@@ -189,7 +188,6 @@ async def run_scheduler():
         args=(bot, 'samara', 20),
         trigger=CronTrigger(hour=20, minute=0),
         misfire_grace_time=10,
-        next_run_time=datetime.now()
     )
 
     # nvg_spb
@@ -198,7 +196,6 @@ async def run_scheduler():
         args=(bot, 'nvg_spb', 21),
         trigger=CronTrigger(hour=21, minute=0),
         misfire_grace_time=10,
-        next_run_time=datetime.now()
     )
 
     scheduler.start()
