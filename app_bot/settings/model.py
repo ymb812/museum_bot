@@ -30,6 +30,8 @@ class Broadcaster(BaseModel):
 class AppSettings(BaseModel):
     prod_mode: bool = fields.Field(alias='PROD_MODE', default=False)
     excel_file: str = fields.Field(alias='EXCEL_FILE', default='Users stats.xlsx')
+    mail_login: str = fields.Field(max_length=100, alias='MAIL_LOGIN')
+    mail_password: str = fields.Field(max_length=100, alias='MAIL_PASSWORD')
 
 
 class PostgresSettings(BaseModel):
