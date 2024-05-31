@@ -103,8 +103,9 @@ class Dispatcher(Model):
         ordering = ['id']
 
     id = fields.BigIntField(pk=True)
-    post = fields.ForeignKeyField('models.Post', to_field='id')
+    post = fields.ForeignKeyField('models.Post', to_field='id', null=True)
     museum = fields.ForeignKeyField(model_name='models.Museum', to_field='id', null=True)
+    city = fields.ForeignKeyField(model_name='models.CitiesForParser', to_field='id', null=True)
     send_at = fields.DatetimeField()
 
 
@@ -119,3 +120,16 @@ class Post(Model):
     video_note_id = fields.CharField(max_length=256, null=True)
     document_file_id = fields.CharField(max_length=256, null=True)
     created_at = fields.DatetimeField(auto_now_add=True)
+
+
+class CitiesForParser(Model):
+    class Meta:
+        table = 'cities_for_parser'
+        ordering = ['id']
+
+    id = fields.IntField(pk=True, index=True)
+    name = fields.CharField(max_length=64)
+    channel_id = fields.BigIntField()
+    send_at = fields.DatetimeField()
+    is_turn = fields.BooleanField(default=False)
+    updated_at = fields.DatetimeField(auto_now=True)

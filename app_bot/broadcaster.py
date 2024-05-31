@@ -1,12 +1,13 @@
 import asyncio
 import logging
+import pytz
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
-from datetime import datetime
+from datetime import datetime, timedelta
 from aiogram import Bot, types
 from aiogram.utils.i18n import I18n
 from core.database import init
-from core.database.models import User, Dispatcher, Post
+from core.database.models import User, Dispatcher, Post, CitiesForParser
 from mail_parser.mail_parser import mail_parser
 from settings import settings
 
@@ -96,8 +97,11 @@ class Broadcaster(object):
             logger.error(f'Get post error', exc_info=e)
             return
 
-        # sending
-        await cls.send_content_to_users(bot=bot, broadcaster_post=post, museum_id=order.museum_id)
+        # sending - check is it for city => call mail_parser
+        if order.city_id:
+            await mail_parser(bot=bot)  # TODO: REWRITE GMAIL PARSER FUNCTION FOR DYNAMIC CITIES
+        else:
+            await cls.send_content_to_users(bot=bot, broadcaster_post=post, museum_id=order.museum_id)
 
         # delete order
         try:
@@ -123,6 +127,11 @@ class Broadcaster(object):
     async def start_event_loop(cls):
         logger.info('Broadcaster started')
         while True:
+            try:
+                await cls.__create_orders_for_mails()
+            except Exception as e:
+                logger.error(f'check_and_send_mails error', exc_info=e)
+
             try:
                 active_orders = await Dispatcher.filter(send_at__lte=datetime.now()).all()
                 logger.info(f'active_orders: {active_orders}')
@@ -161,6 +170,37 @@ class Broadcaster(object):
                 continue
 
             await asyncio.sleep(settings.broadcaster_sleep)
+
+
+    @classmethod
+    async def __create_orders_for_mails(cls):
+        cities = await CitiesForParser.all()
+        if not cities:
+            return
+
+        tz = pytz.timezone('Europe/Moscow')
+        current_date = datetime.now(tz)
+
+        for city in cities:
+            # delete all active orders for cities if is_turn=False
+            if not city.is_turn:
+                await Dispatcher.filter(city_id=city.id).delete()
+                return
+
+            # delete all active orders if city configuration was edited 30 seconds ago
+            if city.updated_at >= current_date - timedelta(seconds=30):
+                await Dispatcher.filter(city_id=city.id).delete()
+
+            # check if there are already any orders for notifications, exit if there are any
+            orders_for_cities = await Dispatcher.filter(city_id=city.id)
+            if orders_for_cities:
+                return
+            else:
+                # create order for city
+                await Dispatcher.create(
+                    city_id=city.id,
+                    send_at=city.send_at,
+                )
 
 
 async def main():
