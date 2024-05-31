@@ -91,26 +91,43 @@ class Broadcaster(object):
     # send mailing from admin panel
     @classmethod
     async def order_work(cls, order: Dispatcher):
-        try:
-            post = await Post.filter(id=(await order.post).id).first()
-        except Exception as e:
-            logger.error(f'Get post error', exc_info=e)
-            return
+        city: CitiesForParser | None = await order.city
+        if city:
+            # sending - check is it for city => call mail_parser
+            await mail_parser(bot=bot, city=city)
 
-        # sending - check is it for city => call mail_parser
-        if order.city_id:
-            await mail_parser(bot=bot)  # TODO: REWRITE GMAIL PARSER FUNCTION FOR DYNAMIC CITIES
+            # update city and order (+24 hours)
+            try:
+                city.was_sent = True
+                await city.save()
+
+                await Dispatcher.filter(id=order.id).update(
+                    send_at=(datetime.now(pytz.timezone('Europe/Moscow')) + timedelta(days=1)).replace(
+                        hour=city.hour, minute=city.minute, second=0, microsecond=0
+                    ),
+                )
+            except Exception as e:
+                logger.critical(f'Update order for city {city.name} error', exc_info=e)
+                return
+
+        # default mailing
         else:
+            try:
+                post = await Post.filter(id=(await order.post).id).first()
+            except Exception as e:
+                logger.error(f'Get post error', exc_info=e)
+                return
+
             await cls.send_content_to_users(bot=bot, broadcaster_post=post, museum_id=order.museum_id)
 
-        # delete order
-        try:
-            await Dispatcher.filter(id=order.id).delete()
-        except Exception as e:
-            logger.critical(f'Delete order error', exc_info=e)
-            return
+            # delete order
+            try:
+                await Dispatcher.filter(id=order.id).delete()
+            except Exception as e:
+                logger.critical(f'Delete order error', exc_info=e)
+                return
 
-        logger.info(f'order_id={order.id} has been sent to users')
+            logger.info(f'order_id={order.id} has been sent to users')
 
 
     @classmethod
@@ -185,21 +202,27 @@ class Broadcaster(object):
             # delete all active orders for cities if is_turn=False
             if not city.is_turn:
                 await Dispatcher.filter(city_id=city.id).delete()
-                return
+                continue
 
-            # delete all active orders if city configuration was edited 30 seconds ago
-            if city.updated_at >= current_date - timedelta(seconds=30):
+            # delete all active orders if city configuration was edited 20 seconds ago
+            if city.updated_at >= current_date - timedelta(seconds=10) and not city.was_sent:
                 await Dispatcher.filter(city_id=city.id).delete()
 
             # check if there are already any orders for notifications, exit if there are any
             orders_for_cities = await Dispatcher.filter(city_id=city.id)
             if orders_for_cities:
-                return
+                continue
             else:
+                # we schedule only for future time
+                send_at = current_date.replace(hour=city.hour, minute=city.minute, second=0, microsecond=0)
+                if current_date > send_at:
+                    send_at += timedelta(days=1)
+
+
                 # create order for city
                 await Dispatcher.create(
                     city_id=city.id,
-                    send_at=city.send_at,
+                    send_at=send_at,
                 )
 
 
@@ -212,31 +235,6 @@ async def run_scheduler():
     scheduler = AsyncIOScheduler()
     scheduler.add_job(Broadcaster.send_notification,
                       trigger=CronTrigger(hour=settings.notification_hours, minute=settings.notification_minutes))
-
-    # add mail jobs
-    # nsk_krsk
-    scheduler.add_job(
-        func=mail_parser,
-        args=(bot, 'nsk_krsk', 17),
-        trigger=CronTrigger(hour=17, minute=0),
-        misfire_grace_time=10,
-    )
-
-    # samara
-    scheduler.add_job(
-        func=mail_parser,
-        args=(bot, 'samara', 20),
-        trigger=CronTrigger(hour=20, minute=0),
-        misfire_grace_time=10,
-    )
-
-    # nvg_spb
-    scheduler.add_job(
-        func=mail_parser,
-        args=(bot, 'nvg_spb', 21),
-        trigger=CronTrigger(hour=21, minute=0),
-        misfire_grace_time=10,
-    )
 
     scheduler.start()
 

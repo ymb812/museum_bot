@@ -104,8 +104,9 @@ class Dispatcher(models.Model):
         verbose_name_plural = verbose_name
 
     id = models.BigAutoField(primary_key=True)
-    post = models.ForeignKey('Post', to_field='id', on_delete=models.CASCADE)
+    post = models.ForeignKey('Post', to_field='id', on_delete=models.CASCADE, null=True, blank=True)
     museum = models.ForeignKey('Museum', to_field='id', null=True, on_delete=models.SET_NULL, blank=True)
+    city = models.ForeignKey('CitiesForParser', to_field='id', null=True, on_delete=models.CASCADE, blank=True)
     send_at = models.DateTimeField()
 
     def __str__(self):
@@ -129,3 +130,29 @@ class Post(models.Model):
 
     def __str__(self):
         return f'{self.id}'
+
+
+class CitiesForParser(models.Model):
+    class Meta:
+        db_table = 'cities_for_parser'
+        ordering = ['id']
+        verbose_name = 'Города для парсинга'
+        verbose_name_plural = verbose_name
+
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=64, verbose_name='Город')
+    channel_id = models.BigIntegerField(verbose_name='Telegram ID Канала')
+    hour = models.IntegerField(verbose_name='Часы отправки по МСК')
+    minute = models.IntegerField(verbose_name='Минуты отправки по МСК')
+    is_turn = models.BooleanField(default=False, verbose_name='Активен')
+    updated_at = models.DateTimeField(auto_now=True)
+    was_sent = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f'{self.id}'
+
+    def save(self, *args, **kwargs):
+        if self.was_sent:
+            self.was_sent = False
+
+        return super(CitiesForParser, self).save(*args, **kwargs)
