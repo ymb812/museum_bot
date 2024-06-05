@@ -28,4 +28,5 @@ async def show_faq(inline_query: types.InlineQuery):
             )
         ))
 
+    results = results[:50]  # cuz of inline limits
     await inline_query.answer(results, is_personal=True, cache_time=1)
