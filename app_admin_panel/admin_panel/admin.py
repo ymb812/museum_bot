@@ -1,7 +1,7 @@
 from django.contrib import admin
 from import_export.admin import ExportActionModelAdmin, ImportExportModelAdmin
 from import_export.resources import ModelResource
-from admin_panel.models import User, Museum, Exhibit, Report, Dispatcher, Post
+from admin_panel.models import User, Museum, Exhibit, Report, Dispatcher, Post, CitiesForParser
 
 
 class CustomImportExport(ImportExportModelAdmin, ExportActionModelAdmin):
@@ -63,6 +63,14 @@ class DispatcherAdmin(CustomImportExport):
 class PostAdmin(CustomImportExport):
     list_display = [field.name for field in Post._meta.fields]
     list_editable = [field.name for field in Post._meta.fields if field.name != 'id' and field.name != 'created_at']
+
+
+@admin.register(CitiesForParser)
+class CitiesForParserAdmin(CustomImportExport):
+    list_display = ['id', 'name', 'channel_id', 'hour', 'minute', 'is_turn', 'updated_at']
+    list_editable = ['name', 'channel_id', 'hour', 'minute', 'is_turn']
+    exclude = ['was_sent']
+
 
 
 # sort models from admin.py by their registering (not alphabetically)

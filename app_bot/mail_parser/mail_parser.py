@@ -6,12 +6,13 @@ import email
 from datetime import datetime, timedelta
 from email.policy import default
 from aiogram import Bot
+from core.database.models import CitiesForParser
 from settings import settings
 
 logger = logging.getLogger(__name__)
 
 
-async def mail_parser(bot: Bot, cities: str, hour: int):
+async def mail_parser(bot: Bot, city: CitiesForParser):
     imap_host = 'imap.gmail.com'
     username = settings.mail_login
     password = settings.mail_password
@@ -23,7 +24,7 @@ async def mail_parser(bot: Bot, cities: str, hour: int):
         mail.select('inbox')
 
         yesterday = datetime.now(pytz.timezone('Europe/Moscow')) - timedelta(days=1)
-        start_date = yesterday.replace(hour=hour, minute=0, second=0, microsecond=0)
+        start_date = yesterday.replace(hour=city.hour, minute=city.minute, second=0, microsecond=0)
         start_date_str = start_date.strftime('%d-%b-%Y')
 
         query = f'(FROM "nsk@galileopark.ru" SINCE {start_date_str})'
@@ -83,30 +84,12 @@ async def mail_parser(bot: Bot, cities: str, hour: int):
 
                         result = f'{paid};{quantity};{souvenirs};{lab_total}'
 
+
+                        # work with city: CitiesForParser
                         subject = msg['Subject']
-                        if 'Нижний Новгород' in subject and 'nvg_spb' in cities:
-                            await bot.send_message(chat_id=settings.nvg_chat_id, text=result)
-                            logger.info(f'Message was sent to Нижний Новгород')
-                            logger.info(f'{message_date} > {start_date}')
-
-                        if 'Санкт-Петербург' in subject and 'nvg_spb' in cities:
-                            await bot.send_message(chat_id=settings.spb_chat_id, text=result)
-                            logger.info(f'Message was sent to Санкт-Петербург')
-                            logger.info(f'{message_date} > {start_date}')
-
-                        if 'Самара' in subject and 'samara' in cities:
-                            await bot.send_message(chat_id=settings.samara_chat_id, text=result)
-                            logger.info(f'Message was sent to Самара')
-                            logger.info(f'{message_date} > {start_date}')
-
-                        if 'Новосибирск' in subject and 'nsk_krsk' in cities:
-                            await bot.send_message(chat_id=settings.nsk_chat_id, text=result)
-                            logger.info(f'Message was sent to Новосибирск')
-                            logger.info(f'{message_date} > {start_date}')
-
-                        if 'Красноярск' in subject and 'nsk_krsk' in cities:
-                            await bot.send_message(chat_id=settings.krsk_chat_id, text=result)
-                            logger.info(f'Message was sent to Красноярск')
+                        if city.name in subject:
+                            await bot.send_message(chat_id=city.channel_id, text=result)
+                            logger.info(f'Message was sent to {city.name} and chat_id={city.channel_id}')
                             logger.info(f'{message_date} > {start_date}')
 
                     except Exception as e:
